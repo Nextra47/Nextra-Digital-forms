@@ -881,11 +881,29 @@
       } else {
         const btn = document.getElementById(`btn-${step}`);
         btn.classList.add('loading');
+
+        // Salva localmente
         try {
           const leads = JSON.parse(localStorage.getItem('nextra_leads') || '[]');
           leads.push({ ...data, ts: new Date().toISOString() });
           localStorage.setItem('nextra_leads', JSON.stringify(leads));
         } catch(_) {}
+
+        // Envia para Formspree
+        fetch('https://formspree.io/f/xdablpnz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            Nome:        data.nome,
+            WhatsApp:    data.whatsapp,
+            Instagram:   '@' + data.instagram,
+            Email:       data.email,
+            Experiencia: data.experiencia,
+            Problemas:   data.problemas.join(', '),
+            Faturamento: data.faturamento,
+          })
+        }).catch(() => {}); // nunca bloqueia o fluxo
+
         const msg = encodeURIComponent(`Olá! Sou ${data.nome}, acabei de preencher o formulário da Nextra Digital e gostaria de conversar com um especialista.`);
         document.getElementById('btn-wa').href = `https://wa.me/5547988608831?text=${msg}`;
         setTimeout(() => {
