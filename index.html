@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nextra — Tráfego Pago por Especialistas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #080c1a;
+      --orange: #e63328;
+      --orange-dark: #c42820;
+      --orange-light: rgba(230,51,40,0.10);
+      --blue: #1a5eff;
+      --blue-dark: #1448d4;
+      --blue-light: rgba(26,94,255,0.10);
+      --white: #ffffff;
+      --gray: #9197a8;
+      --gray-light: #e8eaf0;
+      --green: #22c55e;
+      --radius: 12px;
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--white);
+      color: var(--navy);
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* ════════════════════════════
+       PROGRESS BAR (top strip)
+    ════════════════════════════ */
+    #prog-track {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--gray-light);
+      z-index: 200;
+      display: none;
+    }
+    #prog-track.show { display: block; }
+    #prog-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #e63328, #1a5eff);
+      transition: width .5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ════════════════════════════
+       PAGE SYSTEM
+    ════════════════════════════ */
+    .view {
+      display: none;
+      min-height: 100dvh;
+      flex-direction: column;
+    }
+    .view.active { display: flex; }
+
+    /* ════════════════════════════
+       PAGE 1 — LANDING
+    ════════════════════════════ */
+    #v-landing {
+      background: var(--white);
+      align-items: center;
+    }
+
+    .land-wrap {
+      width: 100%;
+      max-width: 480px;
+      padding: 44px 26px 52px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Logo */
+    .logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 32px; }
+    .logo-icon { margin-bottom: 6px; }
+    .logo-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 2.4rem;
+      letter-spacing: .14em; text-transform: uppercase;
+      line-height: 1;
+    }
+    .logo-red  { color: #e63328; }
+    .logo-blue { color: #1a5eff; }
+    .logo-sub {
+      font-size: .65rem; font-weight: 700;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--gray); margin-top: 3px;
+    }
+
+    /* Accent bar */
+    .accent-bar {
+      width: 44px; height: 4px; border-radius: 4px; margin-bottom: 26px;
+      background: linear-gradient(90deg, #e63328, #1a5eff);
+    }
+
+    /* Headline */
+    .land-h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.95rem, 7.5vw, 2.5rem);
+      line-height: 1.06; text-transform: uppercase;
+      color: var(--navy); width: 100%; margin-bottom: 14px;
+    }
+    .land-h1 em { font-style: normal; color: var(--orange); }
+
+    .land-sub {
+      font-size: 1rem; font-weight: 600; color: var(--gray);
+      line-height: 1.5; width: 100%; margin-bottom: 26px;
+    }
+
+    /* Benefits */
+    .benefits { list-style: none; width: 100%; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px; }
+    .benefits li {
+      display: flex; align-items: flex-start; gap: 11px;
+      font-size: .97rem; font-weight: 600; color: var(--navy); line-height: 1.4;
+      opacity: 0; transform: translateX(-14px);
+      animation: benIn .38s ease forwards;
+    }
+    .benefits li:nth-child(1) { animation-delay: .3s; }
+    .benefits li:nth-child(2) { animation-delay: .44s; }
+    .benefits li:nth-child(3) { animation-delay: .58s; }
+    .benefits li:nth-child(4) { animation-delay: .72s; }
+    .benefits li .ico { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+
+    @keyframes benIn { to { opacity: 1; transform: translateX(0); } }
+
+    /* Qualifier box */
+    .qualifier {
+      width: 100%; background: var(--navy); border-radius: var(--radius);
+      padding: 15px 17px; margin-bottom: 28px; position: relative; overflow: hidden;
+    }
+    .qualifier::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #e63328, #1a5eff);
+    }
+    .qualifier p {
+      font-size: .88rem; font-style: italic; font-weight: 600;
+      color: rgba(255,255,255,.65); line-height: 1.55;
+    }
+    .qualifier p strong { color: #e63328; font-style: normal; }
+
+    /* CTA */
+    .btn-cta {
+      width: 100%; background: linear-gradient(90deg, #e63328 0%, #1a5eff 100%); color: #fff; border: none;
+      border-radius: var(--radius); padding: 19px 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 1.2rem; letter-spacing: .1em; text-transform: uppercase;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px;
+      box-shadow: 0 6px 22px rgba(26,94,255,.28);
+      transition: opacity .18s, transform .14s, box-shadow .18s;
+      position: relative; overflow: hidden;
+    }
+    .btn-cta::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.13), transparent);
+      transform: translateX(-100%); transition: transform .5s;
+    }
+    .btn-cta:hover::after { transform: translateX(100%); }
+    .btn-cta:hover { opacity: .88; transform: translateY(-2px); box-shadow: 0 10px 28px rgba(26,94,255,.38); }
+    .btn-cta:active { transform: translateY(0); }
+    .btn-cta .arr { transition: transform .18s; }
+    .btn-cta:hover .arr { transform: translateX(5px); }
+
+    /* Social proof */
+    .sproof {
+      margin-top: 22px; display: flex; align-items: center; gap: 9px;
+      font-size: .8rem; font-weight: 600; color: var(--gray);
+    }
+    .sproof-avatars { display: flex; }
+    .sproof-av {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--navy); border: 2px solid #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .52rem; font-weight: 800; color: var(--orange);
+      margin-left: -7px; letter-spacing: 0;
+    }
+    .sproof-av:first-child { margin-left: 0; }
+
+    /* ════════════════════════════
+       PAGE 2 — TYPEFORM STEPS
+    ════════════════════════════ */
+    #v-form {
+      background: var(--white);
+      position: relative;
+    }
+
+    /* Top nav bar */
+    .tf-nav {
+      position: fixed;
+      top: 4px; left: 0; right: 0;
+      height: 52px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      background: var(--white);
+      z-index: 100;
+    }
+    #v-form.active .tf-nav { display: flex; }
+
+    .tf-back {
+      width: 36px; height: 36px; border: none; background: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: var(--gray); border-radius: 8px;
+      transition: color .15s, background .15s;
+    }
+    .tf-back:hover { color: var(--navy); background: var(--gray-light); }
+
+    .tf-logo-mini {
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .tf-logo-mini .tf-logo-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 1.2rem;
+      letter-spacing: .12em; text-transform: uppercase;
+    }
+
+    .tf-step-count {
+      font-size: .78rem; font-weight: 700; color: var(--gray);
+      letter-spacing: .04em;
+    }
+
+    /* Steps container */
+    .tf-steps-wrap {
+      padding-top: 56px;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tf-step {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      padding: 40px 26px 36px;
+      max-width: 540px;
+      width: 100%;
+      margin: 0 auto;
+      animation: stepIn .3s ease forwards;
+    }
+    .tf-step.active { display: flex; }
+
+    @keyframes stepIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Question label */
+    .tf-qlabel {
+      font-size: .78rem; font-weight: 800;
+      letter-spacing: .16em; text-transform: uppercase;
+      color: var(--orange); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tf-qlabel .qnum {
+      background: var(--orange); color: #fff;
+      font-size: .68rem; font-weight: 900;
+      width: 20px; height: 20px; border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Question text */
+    .tf-question {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.35rem, 5vw, 1.75rem);
+      line-height: 1.25;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+    .tf-question .req { color: var(--orange); }
+
+    .tf-hint {
+      font-size: .88rem; font-weight: 600; color: var(--gray);
+      margin-bottom: 28px; line-height: 1.4;
+    }
+
+    /* Underline input */
+    .tf-input-wrap { position: relative; margin-bottom: 32px; }
+    .tf-input {
+      width: 100%; background: transparent; border: none;
+      border-bottom: 2px solid var(--gray-light);
+      padding: 10px 0 12px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 1.15rem; font-weight: 600; color: var(--navy);
+      outline: none; transition: border-color .2s;
+      -webkit-appearance: none; appearance: none;
+    }
+    .tf-input::placeholder { color: #d0d3dc; }
+    .tf-input:focus { border-color: var(--orange); }
+    .tf-input.valid { border-color: var(--green); }
+
+    /* Underline line animation */
+    .tf-input-line {
+      position: absolute; bottom: 0; left: 0;
+      width: 0; height: 2px;
+      background: var(--orange);
+      transition: width .3s ease;
+      border-radius: 2px;
+    }
+    .tf-input:focus ~ .tf-input-line { width: 100%; }
+
+    /* Phone field with country code */
+    .tf-phone-wrap {
+      display: flex; gap: 12px; align-items: flex-end;
+      margin-bottom: 32px;
+    }
+    .tf-country {
+      position: relative; flex-shrink: 0; width: 96px;
+    }
+    .tf-country-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: transparent; border: none;
+      border-bottom: 2px solid var(--gray-light);
+      padding: 10px 0 12px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 1.1rem; font-weight: 700; color: var(--navy);
+      cursor: default; width: 100%;
+      white-space: nowrap;
+    }
+    .tf-country-btn .flag { font-size: 1.2rem; }
+    .tf-country-btn .code { font-size: 1.05rem; color: var(--navy); }
+    .tf-country-line {
+      position: absolute; bottom: 0; left: 0;
+      width: 0; height: 2px; background: var(--orange);
+      transition: width .3s ease; border-radius: 2px;
+    }
+    .tf-phone-number { position: relative; flex: 1; }
+    .tf-phone-number .tf-input { width: 100%; }
+    .tf-phone-number .tf-input-line { width: 0; }
+    .tf-phone-number .tf-input:focus ~ .tf-input-line { width: 100%; }
+    .tf-phone-number .tf-input:focus ~ .sibling-line { width: 100%; }
+    /* When phone input is focused, also animate country line */
+    .tf-phone-wrap:focus-within .tf-country-line { width: 100%; }
+    .tf-phone-wrap:focus-within .tf-country-btn { border-color: var(--orange); }
+
+    /* Choice cards (for select-type steps) */
+    .tf-choices {
+      display: flex; flex-direction: column; gap: 10px;
+      margin-bottom: 28px;
+    }
+    .tf-choice {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--white); border: 2px solid var(--gray-light);
+      border-radius: 10px; padding: 14px 16px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+      font-size: 1rem; font-weight: 700; color: var(--navy);
+    }
+    .tf-choice:hover { border-color: var(--orange); background: var(--orange-light); }
+    .tf-choice.selected { border-color: var(--orange); background: var(--orange-light); }
+    .tf-choice .choice-key {
+      min-width: 26px; height: 26px;
+      background: var(--gray-light); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 900; color: var(--gray);
+      transition: background .18s, color .18s;
+      flex-shrink: 0;
+    }
+    .tf-choice.selected .choice-key { background: var(--orange); color: #fff; }
+
+    /* Checkbox grid */
+    .tf-checkgrid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 28px;
+    }
+    .tf-checkitem {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--white); border: 2px solid var(--gray-light);
+      border-radius: 10px; padding: 13px 14px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+      font-size: .93rem; font-weight: 700; color: var(--navy);
+    }
+    .tf-checkitem:has(input:checked) { border-color: var(--orange); background: var(--orange-light); }
+    .tf-checkitem input[type="checkbox"] {
+      width: 18px; height: 18px; flex-shrink: 0;
+      accent-color: var(--orange); cursor: pointer;
+      padding: 0; border: none;
+    }
+
+    /* Continue button */
+    .tf-footer { display: flex; flex-direction: column; gap: 10px; }
+    .btn-continue {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--orange); color: #fff; border: none;
+      border-radius: var(--radius); padding: 17px 28px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 1.1rem; letter-spacing: .1em; text-transform: uppercase;
+      cursor: pointer; width: fit-content;
+      box-shadow: 0 5px 20px rgba(255,107,53,.3);
+      transition: background .18s, transform .13s, box-shadow .18s;
+    }
+    .btn-continue:hover { background: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 8px 26px rgba(255,107,53,.4); }
+    .btn-continue:active { transform: translateY(0); }
+    .btn-continue.loading { opacity: .7; pointer-events: none; }
+    .btn-continue .spin {
+      display: none; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin .65s linear infinite;
+    }
+    .btn-continue.loading .spin { display: block; }
+    .btn-continue.loading .btn-label { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .tf-enter-hint {
+      font-size: .78rem; font-weight: 600; color: var(--gray);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tf-enter-hint .kbd {
+      display: inline-flex; align-items: center; gap: 3px;
+      border: 1.5px solid var(--gray-light); border-radius: 5px;
+      padding: 2px 7px; font-size: .7rem; color: var(--gray);
+      background: #fafafa;
+    }
+
+    /* Social proof step */
+    .tf-social-step { padding: 32px 26px 36px; }
+    .tf-social-title {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 800; font-size: clamp(1.5rem, 6vw, 2rem);
+      color: var(--navy); line-height: 1.2; margin-bottom: 16px;
+    }
+    .tf-social-desc {
+      font-size: .97rem; font-weight: 500; color: #555;
+      line-height: 1.65; margin-bottom: 28px;
+    }
+    .tf-social-desc strong { color: var(--navy); font-weight: 800; }
+    .tf-social-desc a { color: var(--orange); text-decoration: none; font-weight: 700; }
+
+    .client-cards {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; margin-bottom: 28px;
+    }
+    .client-card {
+      background: var(--white); border: 1.5px solid var(--gray-light);
+      border-radius: 12px; padding: 14px 10px 12px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px; text-align: center;
+    }
+    .client-card .cc-icon {
+      width: 52px; height: 52px; border-radius: 10px;
+      background: var(--off-white); border: 1.5px solid var(--gray-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+    }
+    .client-card .cc-name {
+      font-size: .82rem; font-weight: 800; color: var(--navy);
+      line-height: 1.25;
+    }
+    .client-card .cc-tag {
+      font-size: .7rem; font-weight: 600; color: var(--gray);
+      background: var(--off-white); border-radius: 100px;
+      padding: 2px 8px;
+    }
+
+    /* Error msg */
+    .tf-error {
+      font-size: .82rem; font-weight: 700; color: #ef4444;
+      margin-top: -20px; margin-bottom: 20px;
+      display: none;
+    }
+    .tf-error.show { display: block; }
+
+    /* ════════════════════════════
+       PAGE 3 — SUCCESS
+    ════════════════════════════ */
+    #v-success {
+      background: var(--white);
+      align-items: center; justify-content: flex-start;
+    }
+
+    .success-wrap {
+      display: flex; flex-direction: column;
+      padding: 52px 26px 48px;
+      max-width: 480px; width: 100%;
+      margin: 0 auto;
+    }
+
+    .success-wave {
+      font-size: 2.8rem; margin-bottom: 10px;
+      animation: waveAnim .6s ease .2s both;
+    }
+    @keyframes waveAnim {
+      0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+      70%  { transform: scale(1.15) rotate(8deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .success-h2 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 800; font-size: clamp(1.5rem, 6vw, 2rem);
+      color: var(--navy); line-height: 1.2; margin-bottom: 20px;
+    }
+
+    .success-p {
+      font-size: 1rem; font-weight: 500; color: #555;
+      line-height: 1.7; margin-bottom: 32px;
+    }
+
+    .btn-vip {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--orange); color: #fff;
+      text-decoration: none; border-radius: var(--radius);
+      padding: 18px 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 1.1rem; letter-spacing: .1em; text-transform: uppercase;
+      box-shadow: 0 6px 22px rgba(255,107,53,.32);
+      transition: background .18s, transform .13s, box-shadow .18s;
+      width: fit-content;
+    }
+    .btn-vip:hover { background: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(255,107,53,.42); }
+    .btn-vip svg { flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+  <!-- Top progress bar -->
+  <div id="prog-track"><div id="prog-fill" style="width:0%"></div></div>
+
+  <!-- ══════════════════════════════
+       VIEW 1 — LANDING
+  ══════════════════════════════ -->
+  <div class="view active" id="v-landing">
+    <div class="land-wrap">
+
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="54" height="40" viewBox="0 0 54 40" fill="none">
+            <!-- chart line red portion -->
+            <polyline points="2,32 14,20 22,26" stroke="#e63328" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <!-- chart line blue portion -->
+            <polyline points="22,26 34,14 52,4" stroke="#1a5eff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <!-- arrow head blue -->
+            <polyline points="44,4 52,4 52,12" stroke="#1a5eff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="logo-name"><span class="logo-red">NEX</span><span class="logo-blue">TRA</span></div>
+        <div class="logo-sub">SUA MARCA NO PRÓXIMO NÍVEL</div>
+      </div>
+
+      <div class="accent-bar"></div>
+
+      <h1 class="land-h1">
+        Tráfego pago para sua empresa, feito por <em>especialistas!</em>
+      </h1>
+      <p class="land-sub">Tem um bom produto/serviço? Garantimos a demanda qualificada.</p>
+
+      <ul class="benefits">
+        <li><span class="ico">🎯</span><span>Mais retorno (ROAS) no investimento</span></li>
+        <li><span class="ico">🖥️</span><span>Criativos por nossa conta</span></li>
+        <li><span class="ico">✅</span><span>Funil de vendas validados</span></li>
+        <li><span class="ico">🏆</span><span>Fazemos pra você o que fazemos para nós</span></li>
+      </ul>
+
+      <div class="qualifier">
+        <p>→ Exclusivo para empresas que já investem (ou estão dispostas a investir) <strong>NO MÍNIMO R$1.000/mês</strong> nos anúncios.</p>
+      </div>
+
+      <button class="btn-cta" id="btn-start">
+        <span>QUERO ESPECIALISTAS</span>
+        <span class="arr">→</span>
+      </button>
+
+      <div class="sproof">
+        <div class="sproof-avatars">
+          <div class="sproof-av">JC</div>
+          <div class="sproof-av">MR</div>
+          <div class="sproof-av">TB</div>
+          <div class="sproof-av">+</div>
+        </div>
+        <span>+47 empresas já atendidas</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       VIEW 2 — TYPEFORM STEPS
+  ══════════════════════════════ -->
+  <div class="view" id="v-form">
+
+    <!-- Fixed top nav -->
+    <nav class="tf-nav">
+      <button class="tf-back" id="btn-back" aria-label="Voltar">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 4l-6 6 6 6"/>
+        </svg>
+      </button>
+      <div class="tf-logo-mini">
+        <span class="tf-logo-name"><span class="logo-red">NEX</span><span class="logo-blue">TRA</span></span>
+      </div>
+      <span class="tf-step-count" id="step-count">1 / 8</span>
+    </nav>
+
+    <div class="tf-steps-wrap">
+
+      <!-- STEP 1: Nome -->
+      <div class="tf-step active" id="step-1" data-step="1">
+        <div class="tf-qlabel"><span class="qnum">1</span> Pergunta 1 de 8</div>
+        <h2 class="tf-question">Qual seu nome e sobrenome? <span class="req">*</span></h2>
+        <p class="tf-hint">Como podemos te chamar?</p>
+        <div class="tf-input-wrap">
+          <input class="tf-input" id="inp-nome" type="text" placeholder="Ex: João Silva" autocomplete="name" />
+          <div class="tf-input-line"></div>
+        </div>
+        <p class="tf-error" id="err-nome">Por favor, informe seu nome completo.</p>
+        <div class="tf-footer">
+          <button class="btn-continue" id="btn-1">
+            <span class="spin"></span>
+            <span class="btn-label">Continuar →</span>
+          </button>
+          <span class="tf-enter-hint">pressione <span class="kbd">Enter ↵</span></span>
+        </div>
+      </div>
+
+      <!-- STEP 2: WhatsApp -->
+      <div class="tf-step" id="step-2" data-step="2">
+        <div class="tf-qlabel"><span class="qnum">2</span> Pergunta 2 de 8</div>
+        <h2 class="tf-question">Qual seu número do WhatsApp? <span class="req">*</span></h2>
+        <p class="tf-hint">Usaremos apenas para entrar em contato.</p>
+        <div class="tf-phone-wrap">
+          <div class="tf-country">
+            <div class="tf-country-btn">
+              <span class="flag">🇧🇷</span>
+              <span class="code">+55</span>
+            </div>
+            <div class="tf-country-line"></div>
+          </div>
+          <div class="tf-phone-number">
+            <input class="tf-input" id="inp-wa" type="tel" placeholder="(00) 00000-0000" inputmode="numeric" autocomplete="tel" />
+            <div class="tf-input-line"></div>
+          </div>
+        </div>
+        <p class="tf-error" id="err-wa">Informe um WhatsApp válido com DDD.</p>
+        <div class="tf-footer">
+          <button class="btn-continue" id="btn-2">
+            <span class="spin"></span>
+            <span class="btn-label">Continuar →</span>
+          </button>
+          <span class="tf-enter-hint">pressione <span class="kbd">Enter ↵</span></span>
+        </div>
+      </div>
+
+      <!-- STEP 3: Empresa -->
+      <div class="tf-step" id="step-3" data-step="3">
+        <div class="tf-qlabel"><span class="qnum">3</span> Pergunta 3 de 8</div>
+        <h2 class="tf-question">Qual @ do Instagram da sua empresa? <span class="req">*</span></h2>
+        <p class="tf-hint">Digite somente o user, <strong>sem o @ e sem espaços</strong>, por favor.</p>
+        <div class="tf-input-wrap">
+          <input class="tf-input" id="inp-insta" type="text" placeholder="Ex: minhaempresa" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+          <div class="tf-input-line"></div>
+        </div>
+        <p class="tf-error" id="err-insta">Por favor, informe o @ do Instagram.</p>
+        <div class="tf-footer">
+          <button class="btn-continue" id="btn-3">
+            <span class="spin"></span>
+            <span class="btn-label">Continuar →</span>
+          </button>
+          <span class="tf-enter-hint">pressione <span class="kbd">Enter ↵</span></span>
+        </div>
+      </div>
+
+      <!-- STEP 4: Email -->
+      <div class="tf-step" id="step-4" data-step="4">
+        <div class="tf-qlabel"><span class="qnum">4</span> Pergunta 4 de 8</div>
+        <h2 class="tf-question">Qual é o seu email? <span class="req">*</span></h2>
+        <p class="tf-hint">Usaremos para enviar informações importantes.</p>
+        <div class="tf-input-wrap">
+          <input class="tf-input" id="inp-email" type="email" placeholder="Ex: voce@empresa.com" autocomplete="email" inputmode="email" />
+          <div class="tf-input-line"></div>
+        </div>
+        <p class="tf-error" id="err-email">Informe um email válido.</p>
+        <div class="tf-footer">
+          <button class="btn-continue" id="btn-4">
+            <span class="spin"></span>
+            <span class="btn-label">Continuar →</span>
+          </button>
+          <span class="tf-enter-hint">pressione <span class="kbd">Enter ↵</span></span>
+        </div>
+      </div>
+
+      <!-- STEP 5: Experiência com tráfego -->
+      <div class="tf-step" id="step-5" data-step="5">
+        <div class="tf-qlabel"><span class="qnum">5</span> Pergunta 5 de 8</div>
+        <h2 class="tf-question">Já investiu em tráfego pago antes? <span class="req">*</span></h2>
+        <div class="tf-choices" id="choices-exp">
+          <div class="tf-choice" data-val="sim-proprio"><span class="choice-key">A</span>Sim, eu mesmo faço</div>
+          <div class="tf-choice" data-val="sim-contratado"><span class="choice-key">B</span>Sim, contratei uma pessoa/time</div>
+          <div class="tf-choice" data-val="nunca"><span class="choice-key">C</span>Nunca investi.</div>
+        </div>
+        <p class="tf-error" id="err-exp">Selecione uma opção para continuar.</p>
+        <div class="tf-footer">
+          <button class="btn-continue" id="btn-5">
+            <span class="spin"></span>
+            <span class="btn-label">Continuar →</span>
+          </button>
+          <span class="tf-enter-hint">pressione <span class="kbd">Enter ↵</span></span>
+        </div>
+      </div>
+
+      <!-- STEP 6: Problemas (multi-select) -->
+      <div class="tf-step" id="step-6" data-step="6">
+        <div class="tf-qlabel"><span class="qnum">6</span> Pergunta 6 de 8</div>
+        <h2 class="tf-question">Provavelmente você já sofreu com algum desses problemas... Marque as opções que mais se identificar: <span class="req">*</span></h2>
+        <div class="tf-choices tf-multi" id="choices-prob">
+          <div class="tf-choice" data-val="sem-clareza"><span class="choice-key">A</span>Não tinha clareza dos números 😵</div>
+          <div class="tf-choice" data-val="inv-sem-venda"><span class="choice-key">B</span>Aumentei o investimento mas não vendi mais 💸</div>
+          <div class="tf-choice" data-val="culpa-comercial"><span class="choice-key">C</span>O time de marketing culpava o meu atendimento/comercial 👊</div>
+          <div class="tf-choice" data-val="leads-desqual"><span class="choice-key">D</span>Até chegavam leads, mas todos desqualificados 👎</div>
+          <div class="tf-choice tf-choice-none" data-val="nenhum"><span class="choice-key">E</span>Não me identifiquei com nenhum ❌</div>
+        </div>
+        <p class="tf-error" id="err-prob">Selecione ao menos uma opção.</p>
+        <div class="tf-footer">
+          <button class="btn-continue" id="btn-6">
+            <span class="spin"></span>
+            <span class="btn-label">Continuar →</span>
+          </button>
+          <span class="tf-enter-hint">pressione <span class="kbd">Enter ↵</span></span>
+        </div>
+      </div>
+
+      <!-- STEP 7: Social proof -->
+      <div class="tf-step tf-social-step" id="step-7" data-step="7">
+        <h2 class="tf-social-title">Estamos quase lá... 🧡</h2>
+        <p class="tf-social-desc">
+          Nós somos a <strong>Nextra Digital</strong>, fundada pelo
+          <a href="https://instagram.com/gustavo_._m" target="_blank">@gustavo_._m</a>
+          com o simples objetivo de <strong>aumentar as vendas</strong> de
+          <strong>empresas como a sua</strong>, focando em
+          <strong>parcerias de longo prazo!</strong>
+        </p>
+
+        <div class="tf-footer">
+          <button class="btn-continue" id="btn-7">
+            <span class="spin"></span>
+            <span class="btn-label">Isso que preciso! 👉</span>
+          </button>
+          <span class="tf-enter-hint">pressione <span class="kbd">Enter ↵</span></span>
+        </div>
+      </div>
+
+      <!-- STEP 8: Faturamento -->
+      <div class="tf-step" id="step-8" data-step="8">
+        <div class="tf-qlabel"><span class="qnum">8</span> Última pergunta!</div>
+        <h2 class="tf-question">Qual o <strong>faturamento médio mensal</strong> do seu negócio? <span class="req">*</span></h2>
+        <p class="tf-hint">Obs: O seu faturamento não influencia na nossa precificação.</p>
+        <div class="tf-choices" id="choices-fat">
+          <div class="tf-choice" data-val="zero"><span class="choice-key">A</span>Ainda não faturo</div>
+          <div class="tf-choice" data-val="ate15k"><span class="choice-key">B</span>Até R$15.000 por mês</div>
+          <div class="tf-choice" data-val="15k-50k"><span class="choice-key">C</span>De R$15.000 a R$50.000 por mês</div>
+          <div class="tf-choice" data-val="50k-100k"><span class="choice-key">D</span>De R$50.000 a R$100.000 por mês</div>
+          <div class="tf-choice" data-val="100k-300k"><span class="choice-key">E</span>De R$100.000 a R$300.000 por mês</div>
+          <div class="tf-choice" data-val="300k+"><span class="choice-key">F</span>Acima de R$300.000 por mês</div>
+        </div>
+        <p class="tf-error" id="err-fat">Selecione uma opção para continuar.</p>
+        <div class="tf-footer">
+          <button class="btn-continue" id="btn-8">
+            <span class="spin"></span>
+            <span class="btn-label">ENVIAR SOLICITAÇÃO →</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       VIEW 3 — SUCCESS
+  ══════════════════════════════ -->
+  <div class="view" id="v-success">
+    <div class="success-wrap">
+
+      <div class="success-wave">👋</div>
+
+      <h2 class="success-h2">Formulário enviado! 🎉</h2>
+
+      <p class="success-p">
+        Recebemos suas informações com sucesso.<br><br>
+        Agora é só clicar no botão abaixo para falar diretamente com um especialista da Nextra Digital no WhatsApp. Vamos entrar em contato para entender melhor o seu negócio!
+      </p>
+
+      <a href="https://wa.me/5547886008831?text=Ol%C3%A1%2C%20acabei%20de%20preencher%20o%20formul%C3%A1rio%20da%20Nextra%20Digital!" class="btn-vip" id="btn-wa" target="_blank" rel="noopener">
+        FALAR COM A NEXTRA
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 13L13 3M13 3H7M13 3v6"/>
+        </svg>
+      </a>
+
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    const TOTAL_STEPS = 8;
+    let currentStep = 1;
+
+    const data = {
+      nome: '', whatsapp: '', instagram: '', email: '',
+      experiencia: '', problemas: [], faturamento: ''
+    };
+
+    // ── View switcher ───────────────────────────────────────
+    function showView(id) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      const prog = document.getElementById('prog-track');
+      if (id === 'v-form') {
+        prog.classList.add('show');
+      } else if (id === 'v-success') {
+        prog.classList.add('show');
+        document.getElementById('prog-fill').style.width = '100%';
+      } else {
+        prog.classList.remove('show');
+        document.getElementById('prog-fill').style.width = '0%';
+      }
+    }
+
+    // ── Step navigation ─────────────────────────────────────
+    function goStep(n) {
+      document.getElementById(`step-${currentStep}`).classList.remove('active');
+      currentStep = n;
+      const next = document.getElementById(`step-${n}`);
+      next.classList.add('active');
+      const inp = next.querySelector('.tf-input');
+      if (inp) setTimeout(() => inp.focus(), 120);
+      const pct = Math.round(((n - 1) / TOTAL_STEPS) * 100);
+      document.getElementById('prog-fill').style.width = pct + '%';
+      document.getElementById('step-count').textContent = `${n} / ${TOTAL_STEPS}`;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    // ── Validators ──────────────────────────────────────────
+    const validators = {
+      1: () => document.getElementById('inp-nome').value.trim().length >= 3,
+      2: () => document.getElementById('inp-wa').value.replace(/\D/g,'').length >= 10,
+      3: () => document.getElementById('inp-insta').value.trim().length >= 2,
+      4: () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(document.getElementById('inp-email').value.trim()),
+      5: () => data.experiencia !== '',
+      6: () => document.querySelectorAll('#choices-prob .tf-choice.selected').length > 0,
+      7: () => true,
+      8: () => data.faturamento !== '',
+    };
+
+    const errMap = {
+      1: 'err-nome', 2: 'err-wa',  3: 'err-insta',
+      4: 'err-email', 5: 'err-exp', 6: 'err-prob',
+      8: 'err-fat'
+    };
+
+    function showErr(step) {
+      const id = errMap[step];
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (el) { el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 3000); }
+    }
+
+    // ── Advance step ────────────────────────────────────────
+    function advance(step) {
+      if (!validators[step]()) { showErr(step); return; }
+
+      if (step === 1) data.nome      = document.getElementById('inp-nome').value.trim();
+      if (step === 2) data.whatsapp  = document.getElementById('inp-wa').value.trim();
+      if (step === 3) data.instagram = document.getElementById('inp-insta').value.trim().replace(/^@/, '');
+      if (step === 4) data.email     = document.getElementById('inp-email').value.trim();
+      if (step === 6) data.problemas = [...document.querySelectorAll('#choices-prob .tf-choice.selected')].map(c => c.dataset.val);
+
+      if (step < TOTAL_STEPS) {
+        goStep(step + 1);
+      } else {
+        const btn = document.getElementById(`btn-${step}`);
+        btn.classList.add('loading');
+        try {
+          const leads = JSON.parse(localStorage.getItem('nextra_leads') || '[]');
+          leads.push({ ...data, ts: new Date().toISOString() });
+          localStorage.setItem('nextra_leads', JSON.stringify(leads));
+        } catch(_) {}
+        const msg = encodeURIComponent(`Olá! Sou ${data.nome}, acabei de preencher o formulário da Nextra Digital e gostaria de conversar com um especialista.`);
+        document.getElementById('btn-wa').href = `https://wa.me/5547886008831?text=${msg}`;
+        setTimeout(() => {
+          btn.classList.remove('loading');
+          showView('v-success');
+        }, 1200);
+      }
+    }
+
+    // ── Back button ─────────────────────────────────────────
+    document.getElementById('btn-back').addEventListener('click', () => {
+      if (currentStep === 1) {
+        showView('v-landing');
+        document.getElementById('prog-track').classList.remove('show');
+      } else {
+        goStep(currentStep - 1);
+      }
+    });
+
+    // ── Landing CTA ─────────────────────────────────────────
+    document.getElementById('btn-start').addEventListener('click', () => {
+      showView('v-form');
+      setTimeout(() => goStep(1), 50);
+    });
+
+    // ── Continue buttons ─────────────────────────────────────
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const btn = document.getElementById(`btn-${i}`);
+      if (btn) btn.addEventListener('click', () => advance(i));
+    }
+
+    // ── Enter key (não nos steps de escolha 5, 6, 8, 11 e 13) ─
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      if (!document.getElementById('v-form').classList.contains('active')) return;
+      if (![5, 6, 8].includes(currentStep)) advance(currentStep);
+    });
+
+    // ── Choice cards — Experiência (step 5, single) ──────────
+    document.getElementById('choices-exp').addEventListener('click', e => {
+      const card = e.target.closest('.tf-choice');
+      if (!card) return;
+      document.querySelectorAll('#choices-exp .tf-choice').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      data.experiencia = card.dataset.val;
+      setTimeout(() => advance(5), 320);
+    });
+
+    // ── Choice cards — Problemas (step 6, multi-select) ──────
+    document.getElementById('choices-prob').addEventListener('click', e => {
+      const card = e.target.closest('.tf-choice');
+      if (!card) return;
+      const isNone = card.classList.contains('tf-choice-none');
+      if (isNone) {
+        document.querySelectorAll('#choices-prob .tf-choice').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+      } else {
+        document.querySelector('#choices-prob .tf-choice-none')?.classList.remove('selected');
+        card.classList.toggle('selected');
+      }
+    });
+
+    // ── Choice cards — Faturamento (step 8, single) ──────────
+    document.getElementById('choices-fat').addEventListener('click', e => {
+      const card = e.target.closest('.tf-choice');
+      if (!card) return;
+      document.querySelectorAll('#choices-fat .tf-choice').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      data.faturamento = card.dataset.val;
+      setTimeout(() => advance(8), 320);
+    });
+
+    // ── Phone mask ───────────────────────────────────────────
+    document.getElementById('inp-wa').addEventListener('input', function () {
+      let v = this.value.replace(/\D/g,'').slice(0,11);
+      if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+      else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+      else if (v.length > 0) v = `(${v}`;
+      this.value = v;
+    });
+
+    // ── Instagram: remove @ automático se o user digitar ─────
+    document.getElementById('inp-insta').addEventListener('input', function () {
+      this.value = this.value.replace(/^@/, '').replace(/\s/g, '');
+    });
+
+    // ── Atalhos de teclado A–F para cards ────────────────────
+    document.addEventListener('keydown', e => {
+      if (!document.getElementById('v-form').classList.contains('active')) return;
+      const idx = { 'a':0, 'b':1, 'c':2, 'd':3, 'e':4, 'f':5 }[e.key.toLowerCase()];
+      if (idx === undefined) return;
+      if (currentStep === 5) document.querySelectorAll('#choices-exp .tf-choice')[idx]?.click();
+      if (currentStep === 6) document.querySelectorAll('#choices-prob .tf-choice')[idx]?.click();
+      if (currentStep === 8) document.querySelectorAll('#choices-fat .tf-choice')[idx]?.click();
+    });
+
+  })();
+  </script>
+</body>
+</html>
